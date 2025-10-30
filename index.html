@@ -1,0 +1,1375 @@
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link rel="stylesheet" href="styles.css">
+
+
+<!-- CHATBOT DE SOPORTE MEJORADO -->
+<div class="chatbot-container" id="chatbotContainer">
+    <div class="chatbot-header">
+        <h3>🤖 Asistente Virtual</h3>
+        <button class="close-chatbot" onclick="toggleChatbot()">✕</button>
+    </div>
+    <div class="chatbot-messages" id="chatbotMessages">
+        <div class="message bot-message">
+            <div class="message-content">
+                ¡Hola! Soy tu asistente de ¿Donde Estaciono?. ¿En qué puedo ayudarte?
+            </div>
+        </div>
+        <!-- MENÚ DE OPCIONES RÁPIDAS -->
+        <div class="quick-options">
+            <div class="quick-option" onclick="selectQuickOption('reserva')">
+                <i class="fas fa-ticket-alt"></i>
+                <span>Problemas con reserva</span>
+            </div>
+            <div class="quick-option" onclick="selectQuickOption('pago')">
+                <i class="fas fa-credit-card"></i>
+                <span>Consultas de pago</span>
+            </div>
+            <div class="quick-option" onclick="selectQuickOption('qr')">
+                <i class="fas fa-qrcode"></i>
+                <span>Código QR</span>
+            </div>
+            <div class="quick-option" onclick="selectQuickOption('admin')">
+                <i class="fas fa-cog"></i>
+                <span>Modo Admin</span>
+            </div>
+        </div>
+    </div>
+    <div class="chatbot-input">
+        <input type="text" id="chatbotInput" placeholder="Escribe tu mensaje...">
+        <button onclick="sendChatbotMessage()">
+                <i class="fas fa-paper-plane"></i>
+            </button>
+    </div>
+</div>
+
+<!-- BOTÓN FLOTANTE CHATBOT -->
+<div class="chatbot-toggle" onclick="toggleChatbot()">
+    <i class="fas fa-comments"></i>
+</div>
+
+<!-- CONTENEDOR PRINCIPAL -->
+<div class="app-container">
+    <div class="phone-mockup">
+        <div class="status-bar">
+            <span>9:41</span>
+            <span>📶 100% 🔋</span>
+        </div>
+
+        <!-- PANTALLA 0: LOGIN -->
+        <div id="loginScreen" class="screen login-screen">
+            <div class="login-container">
+                <div class="app-logo">
+                    <div class="logo-icon">🚗</div>
+                    <h1>¿donde estaciono?</h1>
+                    <p>Tu estacionamiento para eventos</p>
+                </div>
+
+                <div class="login-form">
+                    <div class="input-group">
+                        <i class="fas fa-user"></i>
+                        <input type="text" id="loginUser" placeholder="Usuario o email">
+                    </div>
+
+                    <div class="input-group">
+                        <i class="fas fa-lock"></i>
+                        <input type="password" id="loginPassword" placeholder="Contraseña">
+                        <button class="show-password" onclick="togglePassword()">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                    </div>
+
+                    <div class="login-options">
+                        <div class="remember-me">
+                            <input type="checkbox" id="rememberMe">
+                            <label for="rememberMe">Recordarme</label>
+                        </div>
+                        <a href="#" class="forgot-password">¿Olvidaste tu contraseña?</a>
+                    </div>
+
+                    <button class="login-btn" onclick="login()">Iniciar Sesión</button>
+
+                    <div class="separator">
+                        <span>o continúa con</span>
+                    </div>
+
+                    <div class="social-login">
+                        <button class="social-btn">
+                                <i class="fab fa-google"></i>
+                                Google
+                            </button>
+                        <button class="social-btn">
+                                <i class="fab fa-facebook"></i>
+                                Facebook
+                            </button>
+                    </div>
+
+                    <div class="register-link">
+                        ¿No tienes cuenta? <a href="#" onclick="showRegister()">Regístrate aquí</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PANTALLA 1: BIENVENIDA -->
+        <div id="welcomeScreen" class="screen welcome-screen hidden">
+            <div class="app-header">
+                <div class="header-content">
+                    <div class="app-title">
+                        <div class="logo-small">🚗</div>
+                        <h2>¿Donde estaciono?</h2>
+                    </div>
+                    <button class="menu-btn" onclick="toggleMenu()">
+                            <i class="fas fa-bars"></i>
+                        </button>
+                </div>
+            </div>
+
+            <div class="main-content">
+                <div class="search-container">
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="searchInput" placeholder="Buscar eventos...">
+                        <div class="search-suggestions" id="searchSuggestions"></div>
+                    </div>
+                </div>
+
+                <div class="tabs-container">
+                    <div class="tab active" onclick="switchTab('favoritos')">
+                        <i class="fas fa-star"></i> Favoritos
+                    </div>
+                    <div class="tab" onclick="switchTab('historial')">
+                        <i class="fas fa-history"></i> Historial
+                    </div>
+                    <div class="tab" onclick="switchTab('seguidos')">
+                        <i class="fas fa-heart"></i> Seguidos
+                    </div>
+                </div>
+
+                <!-- GALERÍA DE EVENTOS -->
+                <div class="events-section">
+                    <div class="section-header">
+                        <h3>🎉 Eventos Destacados</h3>
+                        <span class="see-all" onclick="showAllEvents()">Ver todos</span>
+                    </div>
+
+                    <div class="events-gallery" id="eventsGallery">
+                        <!-- Los eventos se cargan dinámicamente -->
+                    </div>
+                </div>
+
+                <div class="tab-content" id="tabContent">
+                    <!-- Contenido de pestañas -->
+                </div>
+            </div>
+        </div>
+
+        <!-- PANTALLA 2: RESULTADOS CON MAPA -->
+        <div id="resultsScreen" class="screen results-screen hidden">
+            <div class="header">
+                <button class="back-btn" onclick="showScreen('welcome')">←</button>
+                <h2 id="resultsTitle">Estacionamientos Disponibles</h2>
+            </div>
+
+            <div class="filters-container">
+                <div class="filter-btn" onclick="toggleFilters()">
+                    <i class="fas fa-filter"></i>
+                    <span>Filtrar</span>
+                </div>
+                <div class="filter-btn" onclick="toggleSort()">
+                    <i class="fas fa-sort"></i>
+                    <span>Ordenar</span>
+                </div>
+                <div class="results-count" id="resultsCount">3 estacionamientos encontrados</div>
+            </div>
+
+            <div class="main-content">
+                <!-- MAPA LEAFLET MEJORADO -->
+                <div class="map-container">
+                    <div class="map-header">
+                        <h3>📍 Mapa de Estacionamientos</h3>
+                        <div class="map-legend">
+                            <div class="legend-item">
+                                <div class="legend-icon">🏟️</div>
+                                <span>Evento</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-icon">🅿️</div>
+                                <span>Estacionamiento</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="map" class="leaflet-map"></div>
+                </div>
+
+                <!-- LISTA DE ESTACIONAMIENTOS -->
+                <div class="parkings-list" id="parkingsList">
+                    <!-- Los estacionamientos se cargan dinámicamente -->
+                </div>
+            </div>
+        </div>
+
+        <!-- PANTALLA 3: PAGO MEJORADA -->
+        <div id="paymentScreen" class="screen payment-screen hidden">
+            <div class="header">
+                <button class="back-btn" onclick="showScreen('results')">←</button>
+                <h2>Confirmar Reserva</h2>
+            </div>
+
+            <div class="payment-content">
+                <!-- RESUMEN DE RESERVA -->
+                <div class="reservation-card">
+                    <div class="reservation-header">
+                        <h3><i class="fas fa-ticket-alt"></i> Resumen de Reserva</h3>
+                    </div>
+                    <div class="reservation-details">
+                        <div class="detail-row">
+                            <span class="label">Evento:</span>
+                            <span class="value" id="paymentEventName">Concierto Coldplay</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="label">Fecha:</span>
+                            <span class="value" id="paymentEventDate">25 Nov 2024 - 21:00 hs</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="label">Estacionamiento:</span>
+                            <span class="value" id="paymentParkingName">Premium River Plate</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="label">Dirección:</span>
+                            <span class="value" id="paymentParkingAddress">Av. Pres. Figueroa Alcorta 7597</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="label">Distancia:</span>
+                            <span class="value" id="paymentParkingDistance">📍 1.2 km del evento</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- INFORMACIÓN DEL VEHÍCULO -->
+                <div class="info-card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-car"></i> Vehículo Seleccionado</h3>
+                        <button class="edit-btn" onclick="changeVehicle()">Cambiar</button>
+                    </div>
+                    <div class="vehicle-display">
+                        <div class="vehicle-icon">🚗</div>
+                        <div class="vehicle-info">
+                            <h4>Toyota Corolla</h4>
+                            <p>ABC 123 • Gris • Sedan</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MÉTODO DE PAGO MEJORADO -->
+                <div class="info-card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-credit-card"></i> Método de Pago</h3>
+                    </div>
+
+                    <div class="payment-methods-grid">
+                        <div class="payment-method-card active" data-method="card" onclick="selectPaymentMethod('card')">
+                            <div class="method-header">
+                                <div class="method-icon">
+                                    <i class="fas fa-credit-card"></i>
+                                </div>
+                                <div class="method-info">
+                                    <h4>Tarjeta de Crédito/Débito</h4>
+                                    <p>Pago seguro con tu tarjeta</p>
+                                </div>
+                                <div class="method-check">
+                                    <i class="fas fa-check-circle"></i>
+                                </div>
+                            </div>
+                            <div class="method-details">
+                                <div class="card-form">
+                                    <div class="form-group">
+                                        <label>Número de tarjeta</label>
+                                        <input type="text" placeholder="1234 5678 9012 3456" maxlength="19" oninput="formatCardNumber(this)">
+                                    </div>
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label>Fecha de vencimiento</label>
+                                            <input type="text" placeholder="MM/AA" maxlength="5" oninput="formatExpiryDate(this)">
+                                        </div>
+                                        <div class="form-group cvv-group">
+                                            <label>CVV</label>
+                                            <input type="text" placeholder="123" maxlength="3" class="cvv-input">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Nombre del titular</label>
+                                        <input type="text" placeholder="Como figura en la tarjeta">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="payment-method-card" data-method="mercadopago" onclick="selectPaymentMethod('mercadopago')">
+                            <div class="method-header">
+                                <div class="method-icon mercado-pago">
+                                    <span>MP</span>
+                                </div>
+                                <div class="method-info">
+                                    <h4>Mercado Pago</h4>
+                                    <p>Paga con tu cuenta de MP</p>
+                                </div>
+                                <div class="method-check">
+                                    <i class="fas fa-circle"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="payment-method-card" data-method="modo" onclick="selectPaymentMethod('modo')">
+                            <div class="method-header">
+                                <div class="method-icon modo">
+                                    <span>M</span>
+                                </div>
+                                <div class="method-info">
+                                    <h4>MODO</h4>
+                                    <p>Paga con tu billetera MODO</p>
+                                </div>
+                                <div class="method-check">
+                                    <i class="fas fa-circle"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- DETALLE DE COSTOS -->
+                <div class="info-card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-receipt"></i> Detalle del Costo</h3>
+                    </div>
+                    <div class="cost-breakdown">
+                        <div class="cost-item">
+                            <span>Estacionamiento (8 horas)</span>
+                            <span>$6.500</span>
+                        </div>
+                        <div class="cost-item">
+                            <span>Comisión de servicio</span>
+                            <span>$500</span>
+                        </div>
+                        <div class="cost-item discount">
+                            <span>Descuento por reserva anticipada</span>
+                            <span>-$300</span>
+                        </div>
+                        <div class="cost-total">
+                            <span>Total</span>
+                            <span id="paymentTotal">$7.000</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- BOTÓN DE PAGO -->
+            <div class="payment-footer">
+                <div class="security-badge">
+                    <i class="fas fa-shield-alt"></i>
+                    <span>Pago 100% seguro y encriptado</span>
+                </div>
+                <button class="pay-button" onclick="processPayment()">
+                        <i class="fas fa-lock"></i>
+                        Confirmar y Pagar $7.000
+                    </button>
+            </div>
+        </div>
+
+        <!-- PANTALLA 4: PERFIL MEJORADO CON ESCANER QR -->
+        <div id="profileScreen" class="screen profile-screen hidden">
+            <div class="header">
+                <button class="back-btn" onclick="showScreen('welcome')">←</button>
+                <h2>Mi Perfil</h2>
+                <button class="logout-btn" onclick="logout()">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </button>
+            </div>
+
+            <div class="profile-content">
+                <!-- ENCABEZADO DEL PERFIL -->
+                <div class="profile-header">
+                    <div class="user-avatar">
+                        <div class="avatar">JS</div>
+                        <button class="edit-avatar">
+                                <i class="fas fa-camera"></i>
+                            </button>
+                    </div>
+                    <div class="user-info">
+                        <h2>Juan Sánchez</h2>
+                        <p>juansanchez@email.com</p>
+                        <div class="user-badges">
+                            <span class="badge user">Usuario Premium</span>
+                            <span class="badge admin hidden">Administrador</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- BOTÓN ESCANER QR (SOLO ADMIN) -->
+                <div class="qr-scanner-section hidden" id="qrScannerSection">
+                    <div class="scanner-card">
+                        <div class="scanner-header">
+                            <h3><i class="fas fa-qrcode"></i> Escanear Códigos QR</h3>
+                        </div>
+                        <div class="scanner-content">
+                            <p>Escanea los códigos QR de los usuarios para validar sus reservas</p>
+                            <button class="scanner-btn" onclick="openQRScanner()">
+                                    <i class="fas fa-camera"></i>
+                                    Abrir Escáner QR
+                                </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SWITCH MODO ADMIN -->
+                <div class="mode-switcher">
+                    <div class="switch-container">
+                        <span>Modo Usuario</span>
+                        <label class="switch">
+                                <input type="checkbox" id="adminMode" onchange="toggleAdminMode()">
+                                <span class="slider"></span>
+                            </label>
+                        <span>Modo Admin</span>
+                    </div>
+                </div>
+
+                <!-- SECCIÓN USUARIO -->
+                <div class="user-section" id="userSection">
+                    <!-- MIS VEHÍCULOS -->
+                    <div class="section-card">
+                        <div class="section-header">
+                            <h3><i class="fas fa-car"></i> Mis Vehículos</h3>
+                            <button class="add-btn" onclick="addVehicle()">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                        </div>
+                        <div class="vehicles-list">
+                            <div class="vehicle-item">
+                                <div class="vehicle-icon">🚗</div>
+                                <div class="vehicle-details">
+                                    <h4>Toyota Corolla</h4>
+                                    <p>ABC 123 • Gris • Sedan</p>
+                                </div>
+                                <div class="vehicle-actions">
+                                    <button class="icon-btn" onclick="editVehicle(1)">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                </div>
+                            </div>
+                            <div class="vehicle-item">
+                                <div class="vehicle-icon">🚙</div>
+                                <div class="vehicle-details">
+                                    <h4>Ford Ranger</h4>
+                                    <p>DEF 456 • Blanco • Pickup 4x4</p>
+                                </div>
+                                <div class="vehicle-actions">
+                                    <button class="icon-btn" onclick="editVehicle(2)">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- MÉTODOS DE PAGO -->
+                    <div class="section-card">
+                        <div class="section-header">
+                            <h3><i class="fas fa-credit-card"></i> Métodos de Pago</h3>
+                            <button class="add-btn" onclick="addPaymentMethod()">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                        </div>
+                        <div class="payment-methods-list">
+                            <div class="payment-method-item">
+                                <div class="method-icon">
+                                    <i class="fab fa-cc-visa"></i>
+                                </div>
+                                <div class="method-details">
+                                    <h4>Visa •••• 4512</h4>
+                                    <p>Expira 12/25</p>
+                                </div>
+                                <div class="method-default">
+                                    <span class="default-badge">Predeterminado</span>
+                                </div>
+                            </div>
+                            <div class="payment-method-item">
+                                <div class="method-icon mercado-pago">
+                                    <i class="fas fa-wallet"></i>
+                                </div>
+                                <div class="method-details">
+                                    <h4>Mercado Pago</h4>
+                                    <p>Saldo disponible</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- HISTORIAL DE RESERVAS -->
+                    <div class="section-card">
+                        <div class="section-header">
+                            <h3><i class="fas fa-history"></i> Historial de Reservas</h3>
+                            <button class="view-all-btn" onclick="showAllReservations()">Ver todo</button>
+                        </div>
+                        <div class="reservations-list">
+                            <div class="reservation-item" onclick="showReservationDetails(1)">
+                                <div class="reservation-icon">
+                                    <i class="fas fa-music"></i>
+                                </div>
+                                <div class="reservation-info">
+                                    <h4>Concierto Coldplay</h4>
+                                    <p>25 Nov 2024 • Estacionamiento Premium</p>
+                                    <span class="status confirmed">Confirmada</span>
+                                </div>
+                                <div class="reservation-price">$7.000</div>
+                            </div>
+                            <div class="reservation-item" onclick="showReservationDetails(2)">
+                                <div class="reservation-icon">
+                                    <i class="fas fa-futbol"></i>
+                                </div>
+                                <div class="reservation-info">
+                                    <h4>Partido River vs Boca</h4>
+                                    <p>15 Oct 2024 • Parking Central</p>
+                                    <span class="status completed">Completada</span>
+                                </div>
+                                <div class="reservation-price">$5.500</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECCIÓN ADMINISTRADOR -->
+                <div class="admin-section hidden" id="adminSection">
+                    <div class="section-card">
+                        <div class="section-header">
+                            <h3><i class="fas fa-cog"></i> Configuración de Estacionamiento</h3>
+                        </div>
+                        <div class="admin-content">
+                            <div class="vehicle-icons-admin">
+                                <div class="vehicle-icon-admin available" data-type="car" onclick="toggleVehicleAvailability('car')">
+                                    <div class="vehicle-symbol">🚗</div>
+                                    <div class="vehicle-label">Autos</div>
+                                    <div class="vehicle-count">50</div>
+                                </div>
+                                <div class="vehicle-icon-admin available" data-type="pickup" onclick="toggleVehicleAvailability('pickup')">
+                                    <div class="vehicle-symbol">🛻</div>
+                                    <div class="vehicle-label">4x4</div>
+                                    <div class="vehicle-count">20</div>
+                                </div>
+                                <div class="vehicle-icon-admin available" data-type="suv" onclick="toggleVehicleAvailability('suv')">
+                                    <div class="vehicle-symbol">🚚</div>
+                                    <div class="vehicle-label">Pickups</div>
+                                    <div class="vehicle-count">15</div>
+                                </div>
+                                <div class="vehicle-icon-admin unavailable" data-type="motor" onclick="toggleVehicleAvailability('motor')">
+                                    <div class="vehicle-symbol">🏍️</div>
+                                    <div class="vehicle-label">Motos</div>
+                                    <div class="vehicle-count">0</div>
+                                </div>
+                            </div>
+
+                            <div class="parking-config">
+                                <h4>Configuración de Plazas</h4>
+                                <div class="config-item">
+                                    <label>Autos:</label>
+                                    <div class="counter">
+                                        <button onclick="changeCount('cars', -1)">-</button>
+                                        <span id="carsCount">50</span>
+                                        <button onclick="changeCount('cars', 1)">+</button>
+                                    </div>
+                                    <input type="number" id="carPrice" value="7000" class="price-input">
+                                </div>
+                                <div class="config-item">
+                                    <label>4x4:</label>
+                                    <div class="counter">
+                                        <button onclick="changeCount('pickups', -1)">-</button>
+                                        <span id="pickupsCount">20</span>
+                                        <button onclick="changeCount('pickups', 1)">+</button>
+                                    </div>
+                                    <input type="number" id="pickupPrice" value="8500" class="price-input">
+                                </div>
+                                <div class="config-item">
+                                    <label>Pickups:</label>
+                                    <div class="counter">
+                                        <button onclick="changeCount('large', -1)">-</button>
+                                        <span id="largeCount">10</span>
+                                        <button onclick="changeCount('large', 1)">+</button>
+                                    </div>
+                                    <input type="number" id="largePrice" value="10000" class="price-input">
+                                </div>
+                                <!-- NUEVO: CONTADOR PARA MOTOS -->
+                                <div class="config-item">
+                                    <label>Motos:</label>
+                                    <div class="counter">
+                                        <button onclick="changeCount('motor', -1)">-</button>
+                                        <span id="motorCount">0</span>
+                                        <button onclick="changeCount('motor', 1)">+</button>
+                                    </div>
+                                    <input type="number" id="motorPrice" value="3000" class="price-input">
+                                </div>
+                            </div>
+
+                            <button class="save-config-btn" onclick="saveParkingConfig()">
+                                    <i class="fas fa-save"></i>
+                                    Guardar Configuración
+                                </button>
+
+                            <div class="stats-grid">
+                                <div class="stat-card">
+                                    <div class="stat-value">45</div>
+                                    <div class="stat-label">Plazas Ocupadas</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-value">$315,000</div>
+                                    <div class="stat-label">Ingresos Hoy</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-value">68%</div>
+                                    <div class="stat-label">Ocupación</div>
+                                </div>
+                            </div>
+
+                            <canvas id="adminChart" width="400" height="200"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PANTALLA 5: DETALLES DE RESERVA MEJORADA -->
+        <div id="detailsScreen" class="screen details-screen hidden">
+            <div class="header">
+                <button class="back-btn" onclick="showScreen('profile')">←</button>
+                <h2>Detalles de Reserva</h2>
+                <div class="header-actions">
+                    <button class="icon-btn" onclick="shareReservation()">
+                            <i class="fas fa-share-alt"></i>
+                        </button>
+                    <button class="icon-btn" onclick="downloadTicket()">
+                            <i class="fas fa-download"></i>
+                        </button>
+                </div>
+            </div>
+
+            <div class="details-content">
+                <!-- ESTADO DE LA RESERVA -->
+                <div class="status-card">
+                    <div class="status-header">
+                        <div class="status-badge confirmed">
+                            <i class="fas fa-check-circle"></i>
+                            <span>Reserva Confirmada</span>
+                        </div>
+                        <div class="reservation-code">#PE-2024-7892</div>
+                    </div>
+
+                    <!-- LINEA DE TIEMPO -->
+                    <div class="timeline">
+                        <div class="timeline-item active">
+                            <div class="timeline-marker">
+                                <i class="fas fa-check"></i>
+                            </div>
+                            <div class="timeline-content">
+                                <h4>Reserva Confirmada</h4>
+                                <p>25 Nov 2024, 19:30</p>
+                            </div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-marker">
+                                <i class="fas fa-car"></i>
+                            </div>
+                            <div class="timeline-content">
+                                <h4>Acceso al Estacionamiento</h4>
+                                <p>Disponible desde 25 Nov, 18:00</p>
+                            </div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-marker">
+                                <i class="fas fa-flag-checkered"></i>
+                            </div>
+                            <div class="timeline-content">
+                                <h4>Reserva Completada</h4>
+                                <p>Hasta 26 Nov, 02:00</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CÓDIGO QR REAL -->
+                <div class="qr-card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-qrcode"></i> Código de Acceso</h3>
+                        <button class="refresh-btn" onclick="refreshQR()">
+                                <i class="fas fa-sync-alt"></i>
+                            </button>
+                    </div>
+                    <div class="qr-container">
+                        <div id="qrCode" class="qr-code">
+                            <!-- QR se generará aquí -->
+                        </div>
+                        <div class="qr-info">
+                            <p>Muestra este código al ingresar al estacionamiento</p>
+                            <div class="valid-info">
+                                <i class="fas fa-clock"></i>
+                                <span>Válido hasta: 26/11/2024 02:00</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- INFORMACIÓN DETALLADA -->
+                <div class="info-grid">
+                    <div class="info-card">
+                        <div class="info-icon">
+                            <i class="fas fa-calendar"></i>
+                        </div>
+                        <div class="info-content">
+                            <h4>Fecha y Hora</h4>
+                            <p>25 Nov 2024</p>
+                            <small>19:00 - 02:00</small>
+                        </div>
+                    </div>
+                    <div class="info-card">
+                        <div class="info-icon">
+                            <i class="fas fa-map-marker-alt"></i>
+                        </div>
+                        <div class="info-content">
+                            <h4>Ubicación</h4>
+                            <p>Premium River Plate</p>
+                            <small>1.2 km del evento</small>
+                        </div>
+                    </div>
+                    <div class="info-card">
+                        <div class="info-icon">
+                            <i class="fas fa-car"></i>
+                        </div>
+                        <div class="info-content">
+                            <h4>Vehículo</h4>
+                            <p>Toyota Corolla</p>
+                            <small>ABC 123</small>
+                        </div>
+                    </div>
+                    <div class="info-card">
+                        <div class="info-icon">
+                            <i class="fas fa-receipt"></i>
+                        </div>
+                        <div class="info-content">
+                            <h4>Total Pagado</h4>
+                            <p>$7.000</p>
+                            <small>Tarjeta •••• 4512</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- UBICACIÓN Y CÓMO LLEGAR -->
+                <div class="location-card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-map"></i> Ubicación del Estacionamiento</h3>
+                    </div>
+                    <div class="location-content">
+                        <div class="address-info">
+                            <h4>Estacionamiento Premium River</h4>
+                            <p>Av. Pres. Figueroa Alcorta 7597, C1428 CABA</p>
+                            <div class="distance-info">
+                                <i class="fas fa-route"></i>
+                                <span>1.2 km del Estadio River Plate</span>
+                            </div>
+                        </div>
+                        <button class="directions-btn" onclick="openDirections()">
+                                <i class="fas fa-directions"></i>
+                                Cómo llegar
+                            </button>
+                    </div>
+                </div>
+
+                <!-- INFORMACIÓN IMPORTANTE -->
+                <div class="important-info-card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-info-circle"></i> Información Importante</h3>
+                    </div>
+                    <div class="info-list">
+                        <div class="info-item">
+                            <div class="info-icon">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <div class="info-content">
+                                <h4>Horario de Acceso</h4>
+                                <p>Puedes ingresar desde 2 horas antes del evento hasta 1 hora después que finalice.</p>
+                            </div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-icon">
+                                <i class="fas fa-qrcode"></i>
+                            </div>
+                            <div class="info-content">
+                                <h4>Código QR</h4>
+                                <p>Muestra este código QR al ingresar al estacionamiento para validar tu reserva.</p>
+                            </div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-icon">
+                                <i class="fas fa-undo"></i>
+                            </div>
+                            <div class="info-content">
+                                <h4>Política de Cancelación</h4>
+                                <p>Puedes cancelar hasta 24 horas antes del evento para obtener reembolso completo.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ACCIONES -->
+                <div class="actions-section">
+                    <button class="action-btn primary" onclick="addToCalendar()">
+                            <i class="fas fa-calendar-plus"></i>
+                            Agregar al Calendario
+                        </button>
+                    <button class="action-btn secondary" onclick="contactSupport()">
+                            <i class="fas fa-headset"></i>
+                            Soporte
+                        </button>
+                    <button class="action-btn cancel" onclick="cancelReservation()">
+                            <i class="fas fa-times"></i>
+                            Cancelar Reserva
+                        </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- PANTALLA 6: PAGO EXITOSO CON QR -->
+        <div id="successScreen" class="screen success-screen hidden">
+            <div class="header">
+                <button class="back-btn" onclick="showScreen('welcome')">←</button>
+                <h2>¡Pago Exitoso!</h2>
+            </div>
+
+            <div class="success-content">
+                <div class="success-icon-large">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+
+                <div class="success-message">
+                    <h3>¡Reserva Confirmada!</h3>
+                    <p>Tu estacionamiento ha sido reservado exitosamente</p>
+                </div>
+
+                <div class="reservation-code-large">
+                    <div class="code-label">Número de Reserva</div>
+                    <div class="code-value" id="successReservationCode">PE-2024-7892</div>
+                </div>
+
+                <div class="qr-success-container">
+                    <div class="qr-success-header">
+                        <h4><i class="fas fa-qrcode"></i> Código QR de Acceso</h4>
+                        <p>Descarga o muestra este código en el estacionamiento</p>
+                    </div>
+                    <div id="successQRCode" class="qr-success-code">
+                        <!-- QR se generará aquí -->
+                    </div>
+                    <div class="qr-actions">
+                        <button class="qr-action-btn" onclick="downloadSuccessQR()">
+                                <i class="fas fa-download"></i>
+                                Descargar QR
+                            </button>
+                        <button class="qr-action-btn" onclick="shareSuccessQR()">
+                                <i class="fas fa-share"></i>
+                                Compartir
+                            </button>
+                    </div>
+                </div>
+
+                <div class="reservation-summary">
+                    <div class="summary-item">
+                        <span class="summary-label">Evento:</span>
+                        <span class="summary-value" id="successEventName">Concierto Coldplay</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">Estacionamiento:</span>
+                        <span class="summary-value" id="successParkingName">Premium River Plate</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">Fecha:</span>
+                        <span class="summary-value" id="successEventDate">25 Nov 2024 - 21:00 hs</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">Total Pagado:</span>
+                        <span class="summary-value total" id="successTotalAmount">$7.000</span>
+                    </div>
+                </div>
+
+                <div class="success-actions">
+                    <button class="success-btn primary" onclick="showScreen('details')">
+                            <i class="fas fa-ticket-alt"></i>
+                            Ver Detalles de Reserva
+                        </button>
+                    <button class="success-btn secondary" onclick="showScreen('welcome')">
+                            <i class="fas fa-home"></i>
+                            Volver al Inicio
+                        </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- PANTALLA 7: ESCANER QR -->
+        <div id="scannerScreen" class="screen scanner-screen hidden">
+            <div class="header">
+                <button class="back-btn" onclick="showScreen('profile')">←</button>
+                <h2>Escanear QR</h2>
+            </div>
+
+            <div class="scanner-content-full">
+                <div class="scanner-placeholder">
+                    <div class="scanner-icon">
+                        <i class="fas fa-camera"></i>
+                    </div>
+                    <h3>Escáner de Códigos QR</h3>
+                    <p>Enfoca el código QR del usuario para validar su reserva</p>
+                    <div class="scanner-frame">
+                        <div class="scanner-animation"></div>
+                    </div>
+                    <button class="scan-btn" onclick="simulateQRScan()">
+                            <i class="fas fa-camera"></i>
+                            Simular Escaneo
+                        </button>
+                </div>
+
+                <div class="scanner-instructions">
+                    <h4>Instrucciones:</h4>
+                    <ul>
+                        <li>Asegurate de que el código QR esté bien iluminado</li>
+                        <li>Mantené el código dentro del marco de la cámara</li>
+                        <li>Esperá a que se detecte automáticamente</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- PANTALLA 8: REPORTES MEJORADOS -->
+        <div id="reportsScreen" class="screen reports-screen hidden">
+            <div class="header">
+                <button class="back-btn" onclick="showScreen('profile')">←</button>
+                <h2>Reportes y Estadísticas</h2>
+                <button class="export-btn" onclick="exportReport()">
+                        <i class="fas fa-file-export"></i>
+                    </button>
+            </div>
+
+            <div class="reports-content">
+                <!-- FILTROS MEJORADOS -->
+                <div class="filters-section">
+                    <div class="filters-header">
+                        <h3><i class="fas fa-filter"></i> Filtros</h3>
+                        <button class="clear-filters" onclick="clearFilters()">
+                                Limpiar
+                            </button>
+                    </div>
+                    <div class="filters-grid">
+                        <div class="filter-group">
+                            <label>Período</label>
+                            <select id="periodSelect" onchange="updateCharts()">
+                                    <option value="today">Hoy</option>
+                                    <option value="week">Esta Semana</option>
+                                    <option value="month" selected>Este Mes</option>
+                                    <option value="quarter">Este Trimestre</option>
+                                    <option value="year">Este Año</option>
+                                </select>
+                        </div>
+
+                        <div class="filter-group">
+                            <label>Estacionamiento</label>
+                            <select id="parkingSelect" onchange="updateCharts()">
+                                    <option value="all">Todos</option>
+                                    <option value="premium">Premium River</option>
+                                    <option value="central">Central</option>
+                                    <option value="secure">Garaje Seguro</option>
+                                </select>
+                        </div>
+
+                        <div class="filter-group">
+                            <label>Tipo de Evento</label>
+                            <select id="eventTypeSelect">
+                                    <option value="all">Todos</option>
+                                    <option value="concert">Conciertos</option>
+                                    <option value="sports">Deportes</option>
+                                    <option value="festival">Festivales</option>
+                                </select>
+                        </div>
+
+                        <div class="filter-group">
+                            <label>Ordenar por</label>
+                            <select id="sortSelect">
+                                    <option value="revenue">Ingresos</option>
+                                    <option value="bookings">Reservas</option>
+                                    <option value="occupancy">Ocupación</option>
+                                </select>
+                        </div>
+                    </div>
+                    <button class="apply-filters-btn" onclick="applyFilters()">
+                            <i class="fas fa-check"></i>
+                            Aplicar Filtros
+                        </button>
+                </div>
+
+                <!-- KPI CARDS MEJORADAS -->
+                <div class="kpi-section">
+                    <div class="kpi-grid">
+                        <div class="kpi-card revenue">
+                            <div class="kpi-icon">
+                                <i class="fas fa-dollar-sign"></i>
+                            </div>
+                            <div class="kpi-content">
+                                <div class="kpi-value" id="totalRevenue">$1.245.800</div>
+                                <div class="kpi-label">Ingresos Totales</div>
+                                <div class="kpi-trend positive">
+                                    <i class="fas fa-arrow-up"></i> 12.5% vs mes anterior
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="kpi-card bookings">
+                            <div class="kpi-icon">
+                                <i class="fas fa-calendar-check"></i>
+                            </div>
+                            <div class="kpi-content">
+                                <div class="kpi-value" id="totalBookings">1.847</div>
+                                <div class="kpi-label">Reservas Totales</div>
+                                <div class="kpi-trend positive">
+                                    <i class="fas fa-arrow-up"></i> 8.3% vs mes anterior
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="kpi-card occupancy">
+                            <div class="kpi-icon">
+                                <i class="fas fa-chart-pie"></i>
+                            </div>
+                            <div class="kpi-content">
+                                <div class="kpi-value" id="occupancyRate">78%</div>
+                                <div class="kpi-label">Tasa de Ocupación</div>
+                                <div class="kpi-trend negative">
+                                    <i class="fas fa-arrow-down"></i> 2.1% vs mes anterior
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="kpi-card average">
+                            <div class="kpi-icon">
+                                <i class="fas fa-receipt"></i>
+                            </div>
+                            <div class="kpi-content">
+                                <div class="kpi-value" id="averageTicket">$6.745</div>
+                                <div class="kpi-label">Ticket Promedio</div>
+                                <div class="kpi-trend positive">
+                                    <i class="fas fa-arrow-up"></i> 5.2% vs mes anterior
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- GRÁFICOS MEJORADOS -->
+                <div class="charts-section">
+                    <div class="chart-row">
+                        <div class="chart-card large">
+                            <div class="chart-header">
+                                <h4><i class="fas fa-chart-line"></i> Reservas por Día</h4>
+                                <div class="chart-legend">
+                                    <span class="legend-item">
+                                            <div class="legend-color current"></div>
+                                            Este Mes
+                                        </span>
+                                    <span class="legend-item">
+                                            <div class="legend-color previous"></div>
+                                            Mes Anterior
+                                        </span>
+                                </div>
+                            </div>
+                            <canvas id="bookingsChart" width="400" height="200"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="chart-row">
+                        <div class="chart-card">
+                            <div class="chart-header">
+                                <h4><i class="fas fa-chart-pie"></i> Distribución por Tipo</h4>
+                            </div>
+                            <canvas id="distributionChart" width="400" height="200"></canvas>
+                        </div>
+                        <div class="chart-card">
+                            <div class="chart-header">
+                                <h4><i class="fas fa-chart-bar"></i> Ingresos por Estacionamiento</h4>
+                            </div>
+                            <canvas id="revenueChart" width="400" height="200"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- NUEVO GRÁFICO DE TENDENCIA -->
+                    <div class="chart-row">
+                        <div class="chart-card large">
+                            <div class="chart-header">
+                                <h4><i class="fas fa-chart-line"></i> Tendencia Mensual</h4>
+                            </div>
+                            <canvas id="monthlyTrendChart" width="400" height="200"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- RESUMEN DIARIO -->
+                <div class="daily-summary">
+                    <div class="section-header">
+                        <h3><i class="fas fa-calendar-day"></i> Resumen de Hoy</h3>
+                        <div class="date-display">Martes, 26 Nov 2024</div>
+                    </div>
+                    <div class="summary-grid">
+                        <div class="summary-card">
+                            <div class="summary-icon">
+                                <i class="fas fa-calendar-check"></i>
+                            </div>
+                            <div class="summary-content">
+                                <div class="summary-value">45</div>
+                                <div class="summary-label">Reservas Hoy</div>
+                            </div>
+                        </div>
+                        <div class="summary-card">
+                            <div class="summary-icon">
+                                <i class="fas fa-dollar-sign"></i>
+                            </div>
+                            <div class="summary-content">
+                                <div class="summary-value">$315.000</div>
+                                <div class="summary-label">Ingresos Hoy</div>
+                            </div>
+                        </div>
+                        <div class="summary-card">
+                            <div class="summary-icon">
+                                <i class="fas fa-chart-pie"></i>
+                            </div>
+                            <div class="summary-content">
+                                <div class="summary-value">68%</div>
+                                <div class="summary-label">Ocupación Actual</div>
+                            </div>
+                        </div>
+                        <div class="summary-card">
+                            <div class="summary-icon">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <div class="summary-content">
+                                <div class="summary-value">12</div>
+                                <div class="summary-label">Por Ingresar</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TABLA DETALLADA MEJORADA -->
+                <div class="table-section">
+                    <div class="section-header">
+                        <h3><i class="fas fa-table"></i> Detalle por Evento</h3>
+                        <button class="view-all-btn" onclick="showAllEvents()">
+                                Ver Todos
+                            </button>
+                    </div>
+                    <div class="events-table">
+                        <div class="table-header">
+                            <div class="table-cell">Evento</div>
+                            <div class="table-cell">Fecha</div>
+                            <div class="table-cell">Reservas</div>
+                            <div class="table-cell">Ingresos</div>
+                            <div class="table-cell">Ocupación</div>
+                            <div class="table-cell">Acciones</div>
+                        </div>
+                        <div class="table-body">
+                            <div class="table-row">
+                                <div class="table-cell">
+                                    <div class="event-info">
+                                        <div class="event-icon">🎵</div>
+                                        <div class="event-details">
+                                            <div class="event-name">Concierto Coldplay</div>
+                                            <div class="event-location">Estadio River Plate</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="table-cell">25 Nov</div>
+                                <div class="table-cell">450</div>
+                                <div class="table-cell">$3.150.000</div>
+                                <div class="table-cell">
+                                    <div class="occupancy-indicator">
+                                        <div class="occupancy-bar">
+                                            <div class="bar-fill" style="width: 95%"></div>
+                                        </div>
+                                        <span>95%</span>
+                                    </div>
+                                </div>
+                                <div class="table-cell">
+                                    <button class="table-action-btn" onclick="viewEventDetails(1)">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PANTALLA 9: CONFIGURACIÓN -->
+        <div id="settingsScreen" class="screen settings-screen hidden">
+            <div class="header">
+                <button class="back-btn" onclick="showScreen('profile')">←</button>
+                <h2>Configuración</h2>
+            </div>
+
+            <div class="settings-content">
+                <!-- SELECCIÓN DE TEMA -->
+                <div class="settings-section">
+                    <h3><i class="fas fa-palette"></i> Apariencia</h3>
+                    <div class="theme-selector">
+                        <div class="theme-option active" data-theme="default" onclick="changeTheme('default')">
+                            <div class="theme-preview default-theme">
+                                <div class="preview-header"></div>
+                                <div class="preview-content"></div>
+                            </div>
+                            <span>Azul Original</span>
+                        </div>
+                        <div class="theme-option" data-theme="dark" onclick="changeTheme('dark')">
+                            <div class="theme-preview dark-theme">
+                                <div class="preview-header"></div>
+                                <div class="preview-content"></div>
+                            </div>
+                            <span>Oscuro</span>
+                        </div>
+                        <div class="theme-option" data-theme="green" onclick="changeTheme('green')">
+                            <div class="theme-preview green-theme">
+                                <div class="preview-header"></div>
+                                <div class="preview-content"></div>
+                            </div>
+                            <span>Verde</span>
+                        </div>
+                        <div class="theme-option" data-theme="purple" onclick="changeTheme('purple')">
+                            <div class="theme-preview purple-theme">
+                                <div class="preview-header"></div>
+                                <div class="preview-content"></div>
+                            </div>
+                            <span>Púrpura</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- OTRAS CONFIGURACIONES -->
+                <div class="settings-section">
+                    <h3><i class="fas fa-bell"></i> Notificaciones</h3>
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h4>Notificaciones push</h4>
+                            <p>Recibir recordatorios de reservas</p>
+                        </div>
+                        <label class="switch">
+                                <input type="checkbox" checked>
+                                <span class="slider"></span>
+                            </label>
+                    </div>
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h4>Notificaciones por email</h4>
+                            <p>Recibir comprobantes por correo</p>
+                        </div>
+                        <label class="switch">
+                                <input type="checkbox" checked>
+                                <span class="slider"></span>
+                            </label>
+                    </div>
+                </div>
+
+                <!-- PRIVACIDAD -->
+                <div class="settings-section">
+                    <h3><i class="fas fa-shield-alt"></i> Privacidad</h3>
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h4>Compartir datos anónimos</h4>
+                            <p>Mejorar la aplicación con datos de uso</p>
+                        </div>
+                        <label class="switch">
+                                <input type="checkbox">
+                                <span class="slider"></span>
+                            </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MENÚ LATERAL -->
+<div class="side-menu" id="sideMenu">
+    <div class="menu-header">
+        <h3>Menú</h3>
+        <button class="close-menu" id="closeMenu" onclick="toggleMenu()">✕</button>
+    </div>
+    <ul class="menu-items">
+        <li class="menu-item" onclick="navigateTo('welcome')">
+            <i class="fas fa-home"></i> Inicio
+        </li>
+        <li class="menu-item" onclick="navigateTo('profile')">
+            <i class="fas fa-user"></i> Perfil
+        </li>
+        <li class="menu-item" onclick="navigateTo('reports')">
+            <i class="fas fa-chart-bar"></i> Reportes
+        </li>
+        <li class="menu-item" onclick="navigateTo('settings')">
+            <i class="fas fa-cog"></i> Configuración
+        </li>
+        <li class="menu-item" onclick="navigateTo('help')">
+            <i class="fas fa-question-circle"></i> Ayuda
+        </li>
+        <li class="menu-item" onclick="navigateTo('about')">
+            <i class="fas fa-info-circle"></i> Acerca de
+        </li>
+        <li class="menu-item" onclick="logout()">
+            <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+        </li>
+    </ul>
+</div>
+
+<!-- OVERLAY PARA EL MENÚ -->
+<div class="overlay" id="overlay" onclick="toggleMenu()"></div>
+
+<!-- MODALES -->
+<div class="modal" id="cancelModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Cancelar Reserva</h3>
+            <button class="close-modal" onclick="closeModal('cancelModal')">✕</button>
+        </div>
+        <div class="modal-body">
+            <div class="warning-message">
+                <i class="fas fa-exclamation-triangle"></i>
+                <h4>¿Estás seguro de cancelar esta reserva?</h4>
+                <p>Se aplicará un reembolso completo ya que cancelas con más de 24 horas de anticipación.</p>
+            </div>
+
+            <div class="refund-info">
+                <div class="refund-amount">
+                    <span>Monto a reembolsar:</span>
+                    <span class="amount">$7.000</span>
+                </div>
+                <div class="refund-time">
+                    <i class="fas fa-clock"></i>
+                    <span>El reembolso llegará en 5-7 días hábiles</span>
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn-secondary" onclick="closeModal('cancelModal')">
+                        Mantener Reserva
+                    </button>
+                <button class="btn-cancel" onclick="confirmCancel()">
+                        <i class="fas fa-times"></i>
+                        Sí, Cancelar Reserva
+                    </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SCRIPTS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+<script src="script.js"></script>
